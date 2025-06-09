@@ -23,7 +23,7 @@ export async function POST(req) {
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: userPrompt },
       ],
-      max_tokens: 150,
+      max_tokens: 500,
       stream: true, // Enable streaming
     });
 

@@ -72,39 +72,61 @@ export default function Home() {
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 bg-gray-800 border-r border-gray-700 flex flex-col`}>
-        <div className="p-4 border-b border-gray-700">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            New Chat
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-2">
-            {/* Placeholder for chat history */}
-            <div className="text-gray-400 text-sm">Recent Conversations</div>
-            <div className="text-gray-500 text-sm">No conversations yet</div>
+      <div className={`transition-all duration-300 bg-gray-800 flex flex-col ${isSidebarOpen ? 'w-64 border-r border-gray-700' : 'w-14'}`}>
+        {/* Hamburger icon only visible in sidebar when open */}
+        {isSidebarOpen && (
+          <div className="flex items-center justify-center h-16 border-b border-gray-700">
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-2 hover:bg-gray-700 rounded-lg"
+              aria-label="Close sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
-        </div>
-        <div className="p-4 border-t border-gray-700">
-          <div className="text-sm text-gray-400">Model: GPT-3.5</div>
-        </div>
+        )}
+        {/* Sidebar content only if open */}
+        {isSidebarOpen && (
+          <>
+            <div className="p-4 border-b border-gray-700">
+              <button
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                New Chat
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-2">
+                {/* Placeholder for chat history */}
+                <div className="text-gray-400 text-sm">Recent Conversations</div>
+                <div className="text-gray-500 text-sm">No conversations yet</div>
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-700">
+              <div className="text-sm text-gray-400">Model: GPT-3.5</div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-gray-700 p-4 flex items-center">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="mr-4 p-2 hover:bg-gray-700 rounded-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+        <header className={`border-b border-gray-700 p-4 flex items-center ${!isSidebarOpen ? 'border-l border-gray-700' : ''}`}>
+          {/* Hamburger in header only if sidebar is collapsed */}
+          {!isSidebarOpen && (
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="mr-4 p-2 hover:bg-gray-700 rounded-lg"
+              aria-label="Open sidebar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
           <h1 className="text-xl font-semibold">AI Assistant</h1>
         </header>
 
