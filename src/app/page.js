@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -7,6 +7,26 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
+  const [showModelMenu, setShowModelMenu] = useState(false);
+  const modelMenuRef = useRef(null);
+
+  // Close drop-up when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target)) {
+        setShowModelMenu(false);
+      }
+    }
+    if (showModelMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showModelMenu]);
 
   // Handle input change
   const handleInputChange = (e) => {
@@ -32,7 +52,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           prompt: input,
-          systemMessage: "You are a helpful assistant."
+          systemMessage: "You are a helpful assistant.",
+          model: selectedModel
         }),
       });
 
@@ -92,7 +113,7 @@ export default function Home() {
           <>
             <div className="p-4 border-b border-gray-700">
               <button
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="w-full px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800"
               >
                 New Chat
               </button>
@@ -147,7 +168,7 @@ export default function Home() {
                 <div
                   className={`max-w-[80%] rounded-lg p-4 ${
                     message.role === "user"
-                      ? "bg-blue-600"
+                      ? "bg-teal-700"
                       : "bg-gray-700"
                   }`}
                 >
@@ -172,20 +193,70 @@ export default function Home() {
           )}
         </div>
 
-        {/* Input form */}
+        {/* Input form with drop-up */}
         <div className="border-t border-gray-700 p-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          <form onSubmit={handleSubmit} className="flex gap-2 items-end relative">
             <input
               type="text"
               value={input}
               placeholder="Type your message..."
               onChange={handleInputChange}
-              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
             />
+            <div className="relative flex flex-col items-end" ref={modelMenuRef}>
+              <button
+                type="button"
+                className="px-2 py-2 bg-gray-800 border border-gray-700 rounded-lg text-teal-300 hover:bg-gray-700 flex items-center mb-1"
+                onClick={() => setShowModelMenu((v) => !v)}
+                disabled={isLoading}
+                aria-label="Select model"
+              >
+                <span className="mr-1 text-xs font-medium">{
+                  ([
+                    { label: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo' },
+                    { label: 'GPT-4 Turbo', value: 'gpt-4-turbo' },
+                    { label: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash' },
+                    { label: 'Gemini 1.5 Pro', value: 'gemini-1.5-pro' },
+                    { label: 'Claude 3 Haiku', value: 'claude-3-haiku' },
+                    { label: 'Claude 3 Sonnet', value: 'claude-3-sonnet' },
+                    { label: 'Claude 3 Opus', value: 'claude-3-opus' },
+                  ].find(m => m.value === selectedModel)?.label || selectedModel
+                )}
+                </span>
+                <svg className={`w-4 h-4 transition-transform ${showModelMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showModelMenu && (
+                <div className="absolute bottom-12 right-0 mb-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-10 animate-fadeInUp">
+                  <ul className="py-1">
+                    {[
+                      { label: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo' },
+                      { label: 'GPT-4 Turbo', value: 'gpt-4-turbo' },
+                      { label: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash' },
+                      { label: 'Gemini 1.5 Pro', value: 'gemini-1.5-pro' },
+                      { label: 'Claude 3 Haiku', value: 'claude-3-haiku' },
+                      { label: 'Claude 3 Sonnet', value: 'claude-3-sonnet' },
+                      { label: 'Claude 3 Opus', value: 'claude-3-opus' },
+                    ].map((model) => (
+                      <li key={model.value}>
+                        <button
+                          type="button"
+                          className={`w-full text-left px-4 py-2 text-sm hover:bg-teal-800 rounded ${selectedModel === model.value ? 'bg-teal-700 text-white' : 'text-teal-200'}`}
+                          onClick={() => { setSelectedModel(model.value); setShowModelMenu(false); }}
+                        >
+                          {model.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
             <button
               type="submit"
               disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Send
             </button>
