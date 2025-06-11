@@ -152,7 +152,7 @@ export default function Home() {
               </svg>
             </button>
           )}
-          <h1 className="text-xl font-semibold">AI Playground</h1>
+          <h1 className="text-xl font-semibold">Agentic Chatbot</h1>
         </header>
 
         {/* Chat messages */}
