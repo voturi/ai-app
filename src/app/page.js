@@ -55,10 +55,11 @@ export default function Home() {
 
   const handleNewChat = async () => {
     try {
-      const newChat = await chatOperations.createChat();
+      const newChat = await chatOperations.createChat('New Chat');
       setChats(prev => [newChat, ...prev]);
       setCurrentChatId(newChat.id);
       setMessages([]);
+      setInput(''); // Clear input when starting new chat
     } catch (err) {
       console.error('Error creating new chat:', err);
       setError(err);
@@ -98,7 +99,7 @@ export default function Home() {
     // Create new chat if none exists
     if (!currentChatId) {
       try {
-        const newChat = await chatOperations.createChat(input.slice(0, 30) + '...');
+        const newChat = await chatOperations.createChat('New Chat');
         setChats(prev => [newChat, ...prev]);
         setCurrentChatId(newChat.id);
       } catch (err) {
@@ -117,6 +118,16 @@ export default function Home() {
     try {
       // Save user message to Supabase
       await chatOperations.addMessage(currentChatId, "user", input);
+
+      // Update chat title if this is the first message
+      if (messages.length === 0) {
+        const title = input.slice(0, 30) + (input.length > 30 ? '...' : '');
+        await chatOperations.updateChatTitle(currentChatId, title);
+        // Update the chat in the local state
+        setChats(prev => prev.map(chat => 
+          chat.id === currentChatId ? { ...chat, title } : chat
+        ));
+      }
 
       const response = await fetch("/api/completion", {
         method: "POST",

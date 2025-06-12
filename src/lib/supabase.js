@@ -11,12 +11,19 @@ export const chatOperations = {
   async createChat(title = 'New Chat') {
     const { data, error } = await supabase
       .from('chats')
-      .insert([{ title }])
+      .insert([{ 
+        title: title || 'New Chat',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }])
       .select()
       .single()
     
-    if (error) throw error
-    return data
+    if (error) {
+      console.error('Error creating chat:', error);
+      throw error;
+    }
+    return data;
   },
 
   // Get all chats
