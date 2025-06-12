@@ -11,17 +11,25 @@ export const maxDuration = 30;
 export async function POST(req) {
   try {
     // Parse the request body
-    const body = await req.json();
-    const userPrompt = body.prompt || 'Give a great quote from the web';
-    console.log("Received prompt:", userPrompt);
+    const { prompt, systemMessage = 'You are a helpful assistant.', model = 'gpt-3.5-turbo' } = await req.json();
+    
+    if (!prompt) {
+      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log("Received prompt:", prompt);
+    console.log("Using model:", model);
     console.log("OpenAI API key present:", !!process.env.OPENAI_API_KEY);
 
     // Call OpenAI API directly for completion
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo',
+      model: model,
       messages: [
-        { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: userPrompt },
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: prompt },
       ],
       max_tokens: 500,
       stream: true, // Enable streaming
@@ -41,6 +49,7 @@ export async function POST(req) {
           }
           controller.close();
         } catch (error) {
+          console.error("Stream error:", error);
           controller.error(error);
         }
       },

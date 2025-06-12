@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
+import { chatOperations } from '@/lib/supabase';
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -13,7 +14,56 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedModel, setSelectedModel] = useState("gpt-3.5-turbo");
   const [showModelMenu, setShowModelMenu] = useState(false);
+  const [chats, setChats] = useState([]);
+  const [currentChatId, setCurrentChatId] = useState(null);
   const modelMenuRef = useRef(null);
+
+  // Load chats on component mount
+  useEffect(() => {
+    loadChats();
+  }, []);
+
+  // Load messages when chat is selected
+  useEffect(() => {
+    if (currentChatId) {
+      loadMessages(currentChatId);
+    }
+  }, [currentChatId]);
+
+  const loadChats = async () => {
+    try {
+      const chatList = await chatOperations.getChats();
+      setChats(chatList);
+    } catch (err) {
+      console.error('Error loading chats:', err);
+      setError(err);
+    }
+  };
+
+  const loadMessages = async (chatId) => {
+    try {
+      const messageList = await chatOperations.getChatMessages(chatId);
+      setMessages(messageList.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })));
+    } catch (err) {
+      console.error('Error loading messages:', err);
+      setError(err);
+    }
+  };
+
+  const handleNewChat = async () => {
+    try {
+      const newChat = await chatOperations.createChat();
+      setChats(prev => [newChat, ...prev]);
+      setCurrentChatId(newChat.id);
+      setMessages([]);
+    } catch (err) {
+      console.error('Error creating new chat:', err);
+      setError(err);
+    }
+  };
 
   // Close drop-up when clicking outside
   useEffect(() => {
@@ -45,12 +95,29 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
 
+    // Create new chat if none exists
+    if (!currentChatId) {
+      try {
+        const newChat = await chatOperations.createChat(input.slice(0, 30) + '...');
+        setChats(prev => [newChat, ...prev]);
+        setCurrentChatId(newChat.id);
+      } catch (err) {
+        console.error('Error creating new chat:', err);
+        setError(err);
+        setIsLoading(false);
+        return;
+      }
+    }
+
     // Add user message
     const userMessage = { role: "user", content: input };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
 
     try {
+      // Save user message to Supabase
+      await chatOperations.addMessage(currentChatId, "user", input);
+
       const response = await fetch("/api/completion", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,6 +153,10 @@ export default function Home() {
           return newMessages;
         });
       }
+
+      // Save assistant message to Supabase
+      await chatOperations.addMessage(currentChatId, "assistant", result);
+
     } catch (err) {
       console.error("Frontend error:", err);
       setError(err);
@@ -117,6 +188,7 @@ export default function Home() {
           <>
             <div className="p-4 border-b border-gray-700">
               <button
+                onClick={handleNewChat}
                 className="w-full px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800"
               >
                 New Chat
@@ -124,13 +196,30 @@ export default function Home() {
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-2">
-                {/* Placeholder for chat history */}
                 <div className="text-gray-400 text-sm">Recent Conversations</div>
-                <div className="text-gray-500 text-sm">No conversations yet</div>
+                {chats.length === 0 ? (
+                  <div className="text-gray-500 text-sm">No conversations yet</div>
+                ) : (
+                  <div className="space-y-2">
+                    {chats.map((chat) => (
+                      <button
+                        key={chat.id}
+                        onClick={() => setCurrentChatId(chat.id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                          currentChatId === chat.id
+                            ? 'bg-teal-700 text-white'
+                            : 'text-gray-300 hover:bg-gray-700'
+                        }`}
+                      >
+                        {chat.title}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
             <div className="p-4 border-t border-gray-700">
-              <div className="text-sm text-gray-400">Model: GPT-3.5</div>
+              <div className="text-sm text-gray-400">Model: {selectedModel}</div>
             </div>
           </>
         )}
