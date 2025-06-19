@@ -216,7 +216,7 @@ export default function Home() {
                       <button
                         key={chat.id}
                         onClick={() => setCurrentChatId(chat.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                        className={`w-full text-left px-4 py-2 rounded-lg text-sm ${
                           currentChatId === chat.id
                             ? 'bg-teal-700 text-white'
                             : 'text-gray-300 hover:bg-gray-700'
@@ -239,7 +239,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className={`border-b border-gray-700 p-4 flex items-center ${!isSidebarOpen ? 'border-l border-gray-700' : ''}`}>
+        <header className={`p-4 flex items-center ${!isSidebarOpen ? 'border-l border-gray-700' : ''}`}>
           {/* Hamburger in header only if sidebar is collapsed */}
           {!isSidebarOpen && (
             <button
@@ -360,7 +360,7 @@ export default function Home() {
         </div>
 
         {/* Input form with drop-up */}
-        <div className="border-t border-gray-700 p-2">
+        <div className="p-4">
           <form onSubmit={handleSubmit} className="flex gap-2 items-end relative">
             <input
               type="text"
