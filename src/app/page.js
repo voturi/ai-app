@@ -239,7 +239,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className={`p-4 flex items-center ${!isSidebarOpen ? 'border-l border-gray-700' : ''}`}>
+        <header className={`border-b border-gray-700 p-4 flex items-center ${!isSidebarOpen ? 'border-l border-gray-700' : ''}`}>
           {/* Hamburger in header only if sidebar is collapsed */}
           {!isSidebarOpen && (
             <button
@@ -252,7 +252,7 @@ export default function Home() {
               </svg>
             </button>
           )}
-          <h1 className="text-xl font-semibold">Tech Delta</h1>
+          <h1 className="text-xl font-semibold">Agentic Chatbot</h1>
         </header>
 
         {/* Chat messages */}
